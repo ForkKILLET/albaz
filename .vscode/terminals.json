@@ -1,0 +1,20 @@
+{
+  "autorun": false,
+  "terminals": [
+    {
+      "name": "dev:cli",
+      "cwd": "${workspaceFolder}/packages/cli",
+      "command": "pnpm dev"
+    },
+    {
+      "name": "dev:schema",
+      "cwd": "${workspaceFolder}/packages/schema",
+      "command": "pnpm dev"
+    },
+    {
+      "name": "albaz:dev:frontend",
+      "cwd": "${workspaceFolder}/packages/frontend",
+      "command": "pnpm exec albaz dev -d ~/log"
+    }
+  ]
+}

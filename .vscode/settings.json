@@ -1,0 +1,10 @@
+
+{
+  "i18n-ally.localesPaths": [
+    "packages/*/src/locales"
+  ],
+  "i18n-ally.enabledFrameworks": ["vue"],
+  "i18n-ally.pathMatcher": "{locale}.json",
+  "i18n-ally.readonly": false,
+  "i18n-ally.keystyle": "nested"
+}
