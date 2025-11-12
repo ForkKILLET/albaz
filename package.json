@@ -15,5 +15,8 @@
     "overrides": {
       "http-proxy": "npm:http-proxy-node16@^1.0.6"
     }
+  },
+  "devDependencies": {
+    "type-fest": "^5.2.0"
   }
 }

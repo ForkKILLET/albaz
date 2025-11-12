@@ -36,27 +36,38 @@ defineProps<{
 }
 
 .post-meta.entry {
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto 1fr auto;
   grid-template-areas:
-    "title summary s1   created-at"
-    "title summary tags updated-at";
+    "title   s1   created-at"
+    "summary tags updated-at";
 }
 
 .post-meta.title {
   grid-template-columns: auto 1fr auto;
   grid-template-areas:
-    "title   title   title"
-    "summary summary summary"
-    "tags created-at updated-at";
+    "title   title      title"
+    "summary summary    summary"
+    "tags    created-at updated-at";
 }
 
 @media (orientation: portrait) or (max-width: 450px) {
   .post-meta.entry {
     grid-template-columns: auto 1fr auto;
     grid-template-areas:
-      "title   s1 created-at"
-      "summary s1 updated-at"
-      "s2      s1 tags";
+      "title   s1   s2"
+      "summary s1   created-at"
+      "tags    tags updated-at";
+  }
+}
+
+@media (orientation: portrait) or (max-width: 450px) {
+  .post-meta.title {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "title      title   title"
+      "summary    summary summary"
+      "created-at s1      updated-at"
+      "tags       tags    tags";
   }
 }
 
@@ -76,7 +87,12 @@ defineProps<{
 
 .post-tags {
   grid-area: tags;
+}
+.post-meta.entry .post-tags {
   justify-self: end;
+}
+.post-meta.title .post-tags {
+  justify-self: start;
 }
 
 .post-created-at {
