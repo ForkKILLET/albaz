@@ -11,11 +11,6 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.17.1",
-  "pnpm": {
-    "overrides": {
-      "http-proxy": "npm:http-proxy-node16@^1.0.6"
-    }
-  },
   "devDependencies": {
     "type-fest": "^5.2.0"
   }

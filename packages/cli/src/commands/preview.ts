@@ -1,36 +1,39 @@
-import { preview as vitePreview } from 'vite'
-import colors from 'picocolors'
+import * as Vite from 'vite'
 
-import { createLogger } from '../utils/log'
-
-import { loadBlogConfig } from '../utils/config'
-import { serve } from '../utils/serve'
+import { createConfigManager, previewConfigInjector } from '../utils/config'
+import { DataMode, serve } from '../utils/serve'
+import { DistMode, getDistDir } from '../utils/distDir'
+import { viteLogger } from '../utils/logger'
 
 export interface Options {
   port: number
   host: string
   dataDir?: string
-  dataMode: 'proxy' | 'static' | 'direct'
+  distMode: DistMode | 'auto'
+  dataMode: DataMode
 }
 
 export async function preview(options: Options) {
-  const logger = createLogger({ prefix: colors.yellowBright('albaz') })
-  const blogConfig = await loadBlogConfig({ logger })
+  const outDir = await getDistDir({
+    distMode: options.distMode,
+  })
 
-  const viteLogger = createLogger({ prefix: colors.cyan('vite ') })
-  const getViteServer = () => vitePreview({
+  const viteServer = await Vite.preview({
+    build: {
+      outDir,
+    },
+    plugins: [
+      previewConfigInjector(),
+    ],
     server: {
       middlewareMode: true,
     },
     clearScreen: false,
     customLogger: viteLogger,
-    build: {},
   })
 
   await serve('preview', {
     ...options,
-    logger,
-    blogConfig,
-    getViteServer,
+    viteServer,
   })
 }

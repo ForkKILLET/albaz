@@ -1,19 +1,49 @@
-import { createBuilder as createViteBuilder } from 'vite'
-import colors from 'picocolors'
+import * as Vite from 'vite'
 
-import { createLogger } from '../utils/log'
-import { injectBlogConfig, loadBlogConfig } from '../utils/config'
+import { buildConfigInjector, createConfigManager } from '../utils/config'
+import { resolveViteConfigPath } from '../utils/utils'
+import dtsPlugin from 'vite-plugin-dts'
+import { logger, viteLogger } from '../utils/logger'
 
 export const build = async () => {
-  const logger = createLogger({ prefix: colors.yellowBright('albaz') })
-  const blogConfig = await loadBlogConfig({ logger })
-  injectBlogConfig(blogConfig)
 
-  const viteLogger = createLogger({ prefix: colors.cyan('vite ') })
-  const builder = await createViteBuilder({
+  if (! await resolveViteConfigPath()) {
+    logger.fatal(`missing Vite config file`)
+  }
+
+  logger.info('building app...')
+  await Vite.build({
+    plugins: [
+      buildConfigInjector(),
+    ],
     clearScreen: false,
     customLogger: viteLogger,
-    build: {},
-  }, null)
-  await builder.buildApp()
+  })
+
+  logger.info('building lib...')
+  await Vite.build({
+    configFile: false,
+    plugins: [
+      dtsPlugin({
+        tsconfigPath: 'tsconfig.lib.json',
+      }),
+    ],
+    build: {
+      outDir: 'lib',
+      lib: {
+        entry: 'src-lib/index.ts',
+        fileName: 'index',
+        formats: ['es'],
+      },
+      emitAssets: false,
+      copyPublicDir: false,
+      rollupOptions: {
+        external: ['node:path'],
+      }
+    },
+    clearScreen: false,
+    customLogger: viteLogger,
+  })
+
+  logger.info('build complete')
 }

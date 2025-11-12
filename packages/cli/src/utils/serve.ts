@@ -1,101 +1,86 @@
-import fs from 'node:fs/promises'
 import http from 'node:http'
 
-import express, { ErrorRequestHandler } from 'express'
+import Connect from 'connect'
 import serveStatic from 'serve-static'
-import { createProxyMiddleware } from 'http-proxy-middleware'
-import { PreviewServer as VitePreviewServer, ViteDevServer } from 'vite'
+import { createProxyServer } from 'http-proxy-3'
+import * as Vite from 'vite'
 import colors from 'picocolors'
 
-import { BlogConfig, BlogConfigWithDev } from '@albaz/schema'
+import { logger, Logger } from './logger'
+import { configManager, ConfigManager } from './config'
+import { isDir } from './utils'
 
-import { injectBlogConfig } from './config'
-import { Logger } from './log'
-import { log } from 'node:console'
+export type DataMode = 'proxy' | 'static' | 'direct'
 
 export interface ServeOptions {
   port: number
   host: string
   dataDir?: string
-  dataMode: 'proxy' | 'static' | 'direct'
+  dataMode: DataMode
 }
 
 export type ServeType = 'dev' | 'preview'
 
 export interface ServeInternalOptions<Type extends ServeType> extends ServeOptions {
-  logger: Logger
-  getViteServer: () => Promise<
-    Type extends 'dev' ? ViteDevServer :
-    Type extends 'preview' ? VitePreviewServer :
+  viteServer: (
+    Type extends 'dev' ? Vite.ViteDevServer :
+    Type extends 'preview' ? Vite.PreviewServer :
     never
-  >
-  blogConfig: BlogConfigWithDev
+  )
 }
 
 export interface ServeResult {
-  app: express.Express
+  app: Connect.Server
   server: http.Server
 }
 
-export async function isDir(path: string): Promise<boolean> {
-  try {
-    const stat = await fs.stat(await fs.realpath(path))
-    return stat.isDirectory()
-  }
-  catch (err) {
-    return false
-  }
-}
-
-export const encodeURIComponentStrict = (str: string) => str.replace(/[^\w\d]/g, char => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
-
 export async function serve<Type extends ServeType>(type: Type, options: ServeInternalOptions<Type>): Promise<ServeResult> {
-  const { blogConfig, logger, host, port, dataMode, getViteServer } = options
+  const { host, port, dataMode, viteServer } = options
   const address = `http://${host}:${port}`
 
-  const app = express()
+  const app = Connect()
+
+  const config = await configManager.load({ ignoreCache: true })
 
   if (dataMode === 'static') {
-    const dataDir = options.dataDir ?? blogConfig.dev.dataDir
+    const dataDir = options.dataDir ?? config.dev.dataDir
     if (! dataDir) {
-      logger.error('data directory not specified')
-      process.exit(1)
+      logger.fatal('data directory not specified')
     }
     if (! await isDir(dataDir)) {
-      logger.error(`data directory ${colors.dim(dataDir)} does not exist`)
-      process.exit(1)
+      logger.fatal(`data directory ${colors.dim(dataDir)} does not exist`)
     }
 
     app.use('/data', serveStatic(dataDir, { fallthrough: false }))
 
-    blogConfig.dataEndpoint = `${address}/data/`
     logger.info(`data at ${colors.dim(`${address}/data/`)} (static -> ${colors.dim(dataDir)})`)
   }
   else if (dataMode === 'proxy') {
-    const { dataEndpoint: dataEndpointOriginal } = blogConfig
-    app.use('/data', createProxyMiddleware({
-      target: dataEndpointOriginal,
-      changeOrigin: true,
-      logger: logger.standard,
-    }))
+    const { dataEndpoint } = config.blog
 
-    blogConfig.dataEndpoint = `${address}/data/`
-    logger.info(`data at ${colors.dim(`${address}/data/`)} (proxy -> ${colors.dim(dataEndpointOriginal)})`)
+    const proxyServer = createProxyServer({
+      target: dataEndpoint,
+      changeOrigin: true,
+    })
+
+    app.use('/data', proxyServer.web.bind(proxyServer))
+
+    logger.info(`data at ${colors.dim(`${address}/data/`)} (proxy -> ${colors.dim(dataEndpoint)})`)
   }
   else if (dataMode === 'direct') {
-    logger.info(`data at ${colors.dim(blogConfig.dataEndpoint)} (direct)`)
+    logger.info(`data at ${colors.dim(config.blog.dataEndpoint)} (direct)`)
   }
 
-  injectBlogConfig(blogConfig)
+  configManager.override({
+    blog: {
+      dataEndpoint: dataMode === 'direct' ? config.blog.dataEndpoint : `${address}/data/`,
+    },
+  })
 
-  const viteServer = await getViteServer()
   app.use(viteServer.middlewares)
-  const blogAddress = type === 'dev'
-    ? address
-    : `${address}?_ALBAZ_CONFIG=${encodeURIComponentStrict(JSON.stringify(blogConfig))}`
-  viteServer.config.customLogger!.info(`blog at ${colors.dim(blogAddress)}`)
+  viteServer.config.customLogger!.info(`blog at ${colors.dim(address)}`)
 
-  const handleError: ErrorRequestHandler = (err, req, res, _next) => {
+  const handleError: Connect.ErrorHandleFunction = (err, req, res, _next) => {
     logger.error(`data error ${req.method} ${colors.dim(req.url)} - ${err.message}`)
     res.setHeader('Content-Type', 'text/plain')
     res.statusCode = typeof err?.status === 'number' ? err.status : 500
@@ -109,7 +94,7 @@ export async function serve<Type extends ServeType>(type: Type, options: ServeIn
   process.on('SIGINT', () => {
     console.log()
     viteServer.close()
-    viteServer.config.customLogger!.info('server closed')
+    viteServer.config.customLogger!.info('vite server closed')
     server.close()
     logger.info('server closed')
 

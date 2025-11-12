@@ -1,6 +1,6 @@
 {
   "name": "@albaz/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "exports": {
     ".": {
@@ -17,31 +17,38 @@
   ],
   "scripts": {
     "build": "rslib build",
-    "dev": "rslib build --watch",
-    "start": "node ./dist/index.js"
+    "dev": "rslib build --watch"
   },
   "devDependencies": {
+    "@albaz/frontend": "^0.2.0",
     "@commander-js/extra-typings": "^14.0.0",
     "@rslib/core": "^0.17.1",
-    "@types/express": "^5.0.5",
+    "@types/connect": "^3.4.38",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.10.0",
     "@types/serve-static": "^2.2.0",
+    "connect": "^3.7.0",
     "typescript": "^5.9.3",
     "vite": "^7.2.2"
   },
   "dependencies": {
-    "@albaz/schema": "^0.1.0",
+    "@albaz/schema": "^0.2.0",
     "commander": "^14.0.2",
-    "express": "^5.1.0",
-    "fastify": "^5.6.2",
-    "http-proxy-middleware": "^3.0.5",
+    "defu": "^6.1.4",
+    "fast-deep-equal": "^3.1.3",
+    "fk-result": "^0.5.0",
+    "glob": "^11.0.3",
+    "http-proxy-3": "^1.22.0",
     "js-yaml": "^4.1.0",
     "picocolors": "^1.1.1",
     "serve-static": "^2.2.0",
-    "unconfig": "^7.4.0"
+    "strip-ansi": "^7.1.2",
+    "unconfig": "^7.4.0",
+    "vite-plugin-dts": "^4.5.4"
   },
   "peerDependencies": {
-    "vite": "^7.2.2"
+    "@albaz/frontend": "^0.2.0",
+    "vite": "^7.2.2",
+    "vue-tsc": "^3.1.3"
   }
 }

@@ -1,29 +1,20 @@
-import fs from 'node:fs/promises'
+import * as Vite from 'vite'
 
-import { createServer as createViteServer } from 'vite'
-import colors from 'picocolors'
-
-import { createLogger } from '../utils/log'
-import { loadBlogConfig } from '../utils/config'
+import { buildConfigInjector } from '../utils/config'
 import { serve, ServeOptions } from '../utils/serve'
-
-export async function isDir(path: string): Promise<boolean> {
-  try {
-    const stat = await fs.stat(await fs.realpath(path))
-    return stat.isDirectory()
-  }
-  catch (err) {
-    return false
-  }
-}
+import { resolveViteConfigPath } from '../utils/utils'
+import { logger, viteLogger } from '../utils/logger'
 
 export async function dev(options: ServeOptions) {
-  const logger = createLogger({ prefix: colors.yellowBright('albaz') })
-  const blogConfig = await loadBlogConfig({ logger })
 
-  const viteLogger = createLogger({ prefix: colors.cyan('vite ') })
+  if (! await resolveViteConfigPath()) {
+    logger.fatal(`missing Vite config file`)
+  }
 
-  const getViteServer = () => createViteServer({
+  const viteServer = await Vite.createServer({
+    plugins: [
+      buildConfigInjector(),
+    ],
     server: {
       middlewareMode: true,
     },
@@ -31,10 +22,8 @@ export async function dev(options: ServeOptions) {
     customLogger: viteLogger,
   })
 
-  await serve('dev',{
+  await serve('dev', {
     ...options,
-    logger,
-    blogConfig,
-    getViteServer,
+    viteServer,
   })
 }
