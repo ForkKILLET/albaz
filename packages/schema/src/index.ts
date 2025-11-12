@@ -13,13 +13,15 @@ export const BlogConfig = z
     dataEndpoint: z.string().default('./data'),
   })
   .prefault({})
-
-export const BlogConfigWithDev = z.intersection(BlogConfig, z.object({
-  dev: DevConfig,
-}))
-export type BlogConfigWithDev = z.infer<typeof BlogConfigWithDev>
-
 export type BlogConfig = z.infer<typeof BlogConfig>
+
+export const Config = z
+  .object({
+    blog: BlogConfig,
+    dev: DevConfig,
+  })
+  .prefault({})
+export type Config = z.infer<typeof Config>
 
 export const PostMeta = z.object({
   file: z.string(),
