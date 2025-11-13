@@ -1,0 +1,6 @@
+blog:
+  blogTitle: __BLOG_NAME__
+  dataEndpoint: /data
+
+dev:
+  dataDir: ./data

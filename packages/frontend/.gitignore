@@ -1,3 +1,7 @@
+# Albaz debug
+albaz.config.*
+data
+
 # Logs
 logs
 *.log

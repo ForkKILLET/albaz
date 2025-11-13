@@ -1,0 +1,14 @@
+{
+  "posts": [
+    {
+      "file": "hello-world.md",
+      "title": "Hello World",
+      "summary": "My first post in Albaz",
+      "createdAt": "__NOW__",
+      "updatedAt": "__NOW__",
+      "tags": [
+        "albaz", "test"
+      ]
+    }
+  ]
+}

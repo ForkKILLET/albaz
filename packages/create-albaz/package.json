@@ -11,15 +11,25 @@
   "types": "./dist/index.d.ts",
   "bin": "./dist/index.js",
   "files": [
-    "dist"
+    "dist",
+    "templates"
   ],
   "scripts": {
     "build": "rslib build",
-    "dev": "rslib build --watch"
+    "dev": "rslib build --watch",
+    "start": "create-albaz"
   },
   "devDependencies": {
+    "@commander-js/extra-typings": "^14.0.0",
     "@rslib/core": "^0.17.1",
     "@types/node": "^24.10.0",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@clack/prompts": "1.0.0-alpha.6",
+    "commander": "^14.0.2",
+    "execa": "^9.6.0",
+    "glob": "^11.0.3",
+    "picocolors": "^1.1.1"
   }
 }
