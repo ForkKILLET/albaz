@@ -6,7 +6,6 @@ import dtsPlugin from 'vite-plugin-dts'
 import { logger, viteLogger } from '../utils/logger'
 
 export const build = async () => {
-
   if (! await resolveViteConfigPath()) {
     logger.fatal(`missing Vite config file`)
   }

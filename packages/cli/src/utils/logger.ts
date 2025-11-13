@@ -2,7 +2,7 @@ import { Direction } from 'node:tty'
 import nodeUtil from 'node:util'
 
 import colors from 'picocolors'
-import stripAnsi from 'strip-ansi'
+import getAnsiRegex from 'ansi-regex'
 import * as Vite from 'vite'
 
 export interface LoggerOptions {
@@ -62,7 +62,7 @@ export const createLogger = ({ topic }: LoggerOptions): Logger => {
     return (msg: string) => formatTimeStamp() + header + msg
   }
 
-  const { length: prefixWidth } = stripAnsi(getFormat('info')(''))
+  const { length: prefixWidth } = getFormat('info')('').replace(getAnsiRegex(), '')
   const newlinePadding = '\n' + ' '.repeat(prefixWidth)
 
   const getOutput = (level: LogType) => {
@@ -76,9 +76,17 @@ export const createLogger = ({ topic }: LoggerOptions): Logger => {
     }
   }
 
+  const spacedAnsiRegexPattern = `\\s*((${getAnsiRegex().source})*)\\s*`
+  const ansiTrimStartRegex = new RegExp(`^${spacedAnsiRegexPattern}`)
+  const ansiTrimEndRegex = new RegExp(`${spacedAnsiRegexPattern}$`)
+
   const getOutputM = (level: LogType) => {
     const output = getOutput(level)
-    return (msg: string) => output(msg.trim().replace(/\n/g, newlinePadding))
+    return (msg: string) => output(msg
+      .replace(ansiTrimStartRegex, (_, ansi: string) => ansi)
+      .replace(ansiTrimEndRegex, (_, ansi: string) => ansi)
+      .replace(/\n/g, newlinePadding)
+    )
   }
 
   const info = getOutputM('info')
