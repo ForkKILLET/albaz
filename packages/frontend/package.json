@@ -19,7 +19,7 @@
     "preview": "albaz preview"
   },
   "dependencies": {
-    "@albaz/schema": "workspace:*",
+    "@albaz/schema": "^0.2.0",
     "rehype-stringify": "^10.0.1",
     "remark-emoji": "^5.0.2",
     "remark-parse": "^11.0.0",
@@ -32,7 +32,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@albaz/cli": "workspace:*",
+    "@albaz/cli": "^0.2.0",
     "@types/node": "^24.6.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
